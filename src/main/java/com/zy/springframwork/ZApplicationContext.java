@@ -3,6 +3,7 @@ package com.zy.springframwork;
 
 import com.zy.springframwork.anno.Component;
 import com.zy.springframwork.anno.ComponentScan;
+import com.zy.springframwork.anno.Lazy;
 import com.zy.springframwork.anno.Scope;
 import com.zy.springframwork.definition.BeanDefinition;
 
@@ -31,7 +32,7 @@ public class ZApplicationContext {
         //2.实例化
         for (String beanName : beanDefinitionMap.keySet()) {
             BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
-            if (com.zy.springframwork.Scope.SINGLETON.equals(beanDefinition.getScope())) {
+            if (com.zy.springframwork.Scope.SINGLETON.equals(beanDefinition.getScope())  && !beanDefinition.getLazy()) {
                 singletonObjects.put(beanName,createBean(beanName,beanDefinition));
             }
         }
@@ -65,6 +66,7 @@ public class ZApplicationContext {
         if (com.zy.springframwork.Scope.SINGLETON.equals(beanDefinition.getScope())) {
             Object result = singletonObjects.get(beanName);
             if (result == null) {
+                System.out.println("getBean----" + beanName);
                 result = createBean(beanName, beanDefinition);
                 singletonObjects.put(beanName, result);
             }
@@ -101,6 +103,12 @@ public class ZApplicationContext {
                             beanDefinition.setScope(clazz.getAnnotation(Scope.class).value());
                         } else {
                             beanDefinition.setScope(com.zy.springframwork.Scope.SINGLETON);
+                        }
+
+                        if (clazz.isAnnotationPresent(Lazy.class)) {
+                            beanDefinition.setLazy(clazz.getAnnotation(Lazy.class).value());
+                        } else {
+                            beanDefinition.setLazy(false);
                         }
 
                         String beanName = clazz.getAnnotation(Component.class).value();
