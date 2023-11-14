@@ -1,14 +1,13 @@
 package com.zy.springframwork;
 
 
-import com.zy.springframwork.anno.Component;
-import com.zy.springframwork.anno.ComponentScan;
-import com.zy.springframwork.anno.Lazy;
+import com.zy.springframwork.anno.*;
 import com.zy.springframwork.anno.Scope;
 import com.zy.springframwork.definition.BeanDefinition;
 
 import java.beans.Introspector;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,10 +41,16 @@ public class ZApplicationContext {
     }
 
     private Object createBean(String beanName, BeanDefinition beanDefinition) {
-
         Class clazz = beanDefinition.getType();
         try {
             Object o = clazz.newInstance();
+            for (Field field : clazz.getDeclaredFields()) {
+                if (field.isAnnotationPresent(Autowired.class)) {
+                    Object bean = getBean(field.getName());
+                    field.setAccessible(true);
+                    field.set(o, bean);
+                }
+            }
             return o;
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
@@ -89,6 +94,7 @@ public class ZApplicationContext {
             File file = new File(resource.getFile());
             List<File> classFile = new ArrayList<>();
             recursionFile(file, classFile);
+
 
             for (File f : classFile) {
                 String absolutePath = f.getAbsolutePath();

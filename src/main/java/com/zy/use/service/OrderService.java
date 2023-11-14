@@ -11,4 +11,8 @@ import com.zy.springframwork.anno.Scope;
 @Component
 @Lazy
 public class OrderService {
+
+    public void test(){
+        System.out.println("orderService test -----");
+    }
 }
