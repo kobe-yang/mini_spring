@@ -4,6 +4,8 @@ package com.zy.springframwork;
 import com.zy.springframwork.anno.*;
 import com.zy.springframwork.anno.Scope;
 import com.zy.springframwork.definition.BeanDefinition;
+import com.zy.springframwork.in.ApplicationContextAware;
+import com.zy.springframwork.in.BeanNameAware;
 
 import java.beans.Introspector;
 import java.io.File;
@@ -44,6 +46,8 @@ public class ZApplicationContext {
         Class clazz = beanDefinition.getType();
         try {
             Object o = clazz.newInstance();
+
+            //依赖注入  autowired
             for (Field field : clazz.getDeclaredFields()) {
                 if (field.isAnnotationPresent(Autowired.class)) {
                     Object bean = getBean(field.getName());
@@ -51,6 +55,17 @@ public class ZApplicationContext {
                     field.set(o, bean);
                 }
             }
+
+            //aware处理
+            if ( o instanceof BeanNameAware) {
+                ((BeanNameAware) o).setBeanName(beanName);
+            }
+
+            if (o instanceof ApplicationContextAware) {
+                ((ApplicationContextAware) o).setApplicationContext(this);
+            }
+
+
             return o;
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
